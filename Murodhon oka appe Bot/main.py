@@ -1,5 +1,6 @@
 import asyncio
 import datetime
+import os
 import requests
 from aiogram import Bot, Dispatcher, F, types
 from aiogram.filters import CommandStart
@@ -7,6 +8,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from aiohttp import web
 
 # --- 1. SOZLAMALAR ---
 BOT_TOKEN = "8930856087:AAHMEnqG3A_csGtecQWgFyyWu_s8hWiNQFw"
@@ -15,6 +17,19 @@ FIREBASE_PROJECT_ID = "olmastat-bot"
 
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
+
+# Render uchun kichik dummy veb-server (Render botni o'chirib qo'ymasligi uchun)
+async def handle(request):
+    return web.Response(text="Bot ishlomoqda...")
+
+async def start_web_server():
+    app = web.Application()
+    app.router.add_get("/", handle)
+    runner = web.AppRunner(app)
+    await runner.setup()
+    port = int(os.environ.get("PORT", 8080))
+    site = web.TCPSite(runner, "0.0.0.0", port)
+    await site.start()
 
 # --- KEYBOARDS ---
 sort_keyboard = ReplyKeyboardMarkup(
@@ -54,7 +69,6 @@ def get_today_sales_grouped(today_str):
     response = requests.get(url)
     
     total_s1, total_s2, total_s3 = 0, 0, 0
-    # Structure: { "Murodjon": { "🍎 1-sort (Gala)": 300, "🍏 2-sort (Fuji)": 150 } }
     users_data = {}
     
     if response.status_code == 200:
@@ -68,12 +82,10 @@ def get_today_sales_grouped(today_str):
                 qty = int(fields.get("quantity", {}).get("integerValue", 0))
                 user = fields.get("user_name", {}).get("stringValue", "Noma'lum")
                 
-                # Umumiy sortlar bo'yicha yig'ish
                 if "1-sort" in sort: total_s1 += qty
                 elif "2-sort" in sort: total_s2 += qty
                 elif "3-sort" in sort: total_s3 += qty
                 
-                # Foydalanuvchi va sort bo'yicha guruhlash
                 if user not in users_data:
                     users_data[user] = {}
                 
@@ -184,12 +196,11 @@ async def send_daily_report():
     
     total_all = s1 + s2 + s3
     
-    # Xodimlar bo'yicha chiroyli blok yaratish
     users_report_blocks = []
     if users_data:
         for user, sorts in users_data.items():
             user_total = sum(sorts.values())
-            sort_details = "\n".join([f"  ▫️ {sort_name}: {qty} kg" for sort_name, qty in sorts.items()])
+            sort_details = "\n".join([f"  ▫️️ {sort_name}: {qty} kg" for sort_name, qty in sorts.items()])
             block = f"👤 **{user}** (Jami: {user_total} kg):\n{sort_details}"
             users_report_blocks.append(block)
         
@@ -219,8 +230,10 @@ scheduler = AsyncIOScheduler()
 scheduler.add_job(send_daily_report, 'cron', hour=22, minute=0)
 
 async def main():
+    await start_web_server()  # Render uchun portni ishga tushiramiz
     scheduler.start()
     print("Bot muvaffaqiyatli ishga tushdi!")
+    await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
