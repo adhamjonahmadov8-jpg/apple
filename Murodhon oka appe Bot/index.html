@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="uz" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Murodjon AppleStat | Premium Adaptive Dashboard</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { 50: '#f0fdf4', 500: '#22c55e', 600: '#16a34a', 900: '#14532d' }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- FontAwesome & Google Fonts -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors duration-300 min-h-screen flex flex-col md:flex-row">
+
+    <!-- MOBIL QURILMALAR UCHUN OVERLAY (Menyu ochilganda orqa fonni to'sib turadi) -->
+    <div id="sidebar-backdrop" onclick="toggleSidebar()" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-40 hidden md:hidden transition-opacity"></div>
+
+    <!-- SIDEBAR (Yon Menyu - Mobil, Planshet va Kompyuterga mos) -->
+    <aside id="sidebar" class="fixed md:static inset-y-0 left-0 z-50 w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col justify-between -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
+        <div>
+            <!-- Logo & Yopish Tugmasi -->
+            <div class="p-5 flex items-center justify-between border-b border-slate-200 dark:border-slate-800">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center text-white text-xl shadow-lg shadow-emerald-500/30">
+                        🍎
+                    </div>
+                    <div>
+                        <h1 class="font-extrabold text-base leading-tight text-slate-900 dark:text-white">AppleStat</h1>
+                        <span class="text-xs text-emerald-500 font-semibold">Admin Panel</span>
+                    </div>
+                </div>
+                <!-- Faqat mobilda ko'rinadigan yopish tugmasi -->
+                <button onclick="toggleSidebar()" class="md:hidden text-slate-400 hover:text-slate-600 dark:hover:text-white text-lg p-2">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="p-4 space-y-1">
+                <a href="#" class="flex items-center space-x-3 px-4 py-3 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold text-sm">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Bosh Sahifa</span>
+                </a>
+                <a href="#sales-table" onclick="if(window.innerWidth < 768) toggleSidebar();" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition text-sm font-medium">
+                    <i class="fa-solid fa-list-check"></i>
+                    <span>Sotuvlar Tarixi</span>
+                </a>
+            </nav>
+        </div>
+
+        <div class="p-4 border-t border-slate-200 dark:border-slate-800">
+            <div class="flex items-center space-x-3 p-2">
+                <div class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></div>
+                <span class="text-xs text-slate-500 font-medium">Bot Sinxronlangan</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT AREA -->
+    <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+
+        <!-- TOP NAVBAR -->
+        <header class="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 sm:px-6 flex items-center justify-between sticky top-0 z-30">
+            <div class="flex items-center space-x-3">
+                <!-- Hamburger Menu Button (Mobil uchun) -->
+                <button onclick="toggleSidebar()" class="md:hidden w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-200 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition">
+                    <i class="fa-solid fa-bars text-lg"></i>
+                </button>
+                <h2 class="text-base sm:text-lg font-bold text-slate-800 dark:text-white truncate">Jonli Sotuvlar Paneli</h2>
+            </div>
+
+            <!-- Dark/Light Mode Switcher -->
+            <button id="theme-toggle" class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-amber-400 flex items-center justify-center hover:scale-105 transition shadow-sm">
+                <i id="theme-toggle-dark-icon" class="fa-solid fa-moon hidden"></i>
+                <i id="theme-toggle-light-icon" class="fa-solid fa-sun"></i>
+            </button>
+        </header>
+
+        <!-- DASHBOARD BODY -->
+        <main class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
+
+            <!-- STATISTIKA KARTALARI (Responsive Grid) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                
+                <!-- Jami Sotuv -->
+                <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-semibold uppercase text-slate-400">Jami Sotuv</span>
+                        <span class="p-2 rounded-xl bg-emerald-500/10 text-emerald-500"><i class="fa-solid fa-boxes-stacked"></i></span>
+                    </div>
+                    <div class="mt-3">
+                        <span id="total-qty" class="text-2xl font-black text-slate-900 dark:text-white">0 kg</span>
+                    </div>
+                </div>
+
+                <!-- 1-sort -->
+                <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-semibold uppercase text-slate-400">1-sort (Gala)</span>
+                        <span class="p-2 rounded-xl bg-red-500/10 text-red-500"><i class="fa-solid fa-apple-whole"></i></span>
+                    </div>
+                    <div class="mt-3">
+                        <span id="sort1-qty" class="text-2xl font-black text-slate-900 dark:text-white">0 kg</span>
+                    </div>
+                </div>
+
+                <!-- 2-sort -->
+                <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-semibold uppercase text-slate-400">2-sort (Fuji)</span>
+                        <span class="p-2 rounded-xl bg-emerald-500/10 text-emerald-500"><i class="fa-solid fa-apple-whole"></i></span>
+                    </div>
+                    <div class="mt-3">
+                        <span id="sort2-qty" class="text-2xl font-black text-slate-900 dark:text-white">0 kg</span>
+                    </div>
+                </div>
+
+                <!-- 3-sort -->
+                <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-semibold uppercase text-slate-400">3-sort (Golden)</span>
+                        <span class="p-2 rounded-xl bg-amber-500/10 text-amber-500"><i class="fa-solid fa-apple-whole"></i></span>
+                    </div>
+                    <div class="mt-3">
+                        <span id="sort3-qty" class="text-2xl font-black text-slate-900 dark:text-white">0 kg</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- BOTDAN KELGAN REAL SOTUVLAR JADVALI -->
+            <div id="sales-table" class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
+                <div class="p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                        <h3 class="font-bold text-base text-slate-900 dark:text-white">Bot orqali kiritilgan sotuvlar</h3>
+                        <p class="text-xs text-slate-400">Har bir kiritilgan sotuv real vaqtda yangilanadi va o'chirilishi mumkin</p>
+                    </div>
+                    <button onclick="loadLiveSales()" class="self-start sm:self-auto px-3.5 py-2 rounded-xl bg-emerald-500/10 text-emerald-500 text-xs font-semibold hover:bg-emerald-500/20 transition flex items-center">
+                        <i class="fa-solid fa-rotate mr-1.5"></i> Yangilash
+                    </button>
+                </div>
+
+                <!-- Mobil qurilmalar uchun gorizontal skroll bo'ladigan jadval -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm min-w-[600px]">
+                        <thead class="bg-slate-50 dark:bg-slate-800/50 text-slate-400 uppercase text-[11px] font-bold">
+                            <tr>
+                                <th class="p-4">Xodim</th>
+                                <th class="p-4">Olma Sorti</th>
+                                <th class="p-4">Miqdor (kg)</th>
+                                <th class="p-4">Sana va Vaqt</th>
+                                <th class="p-4 text-center">Amal</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sales-rows" class="divide-y divide-slate-100 dark:divide-slate-800">
+                            <tr>
+                                <td colspan="5" class="p-6 text-center text-slate-400 font-medium">Ma'lumotlar yuklanmoqda...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- SCRIPT LOGIC -->
+    <script>
+        const PROJECT_ID = "olmastat-bot";
+
+        // SIDEBAR MENYU TOGGLE (Mobil telefonlar uchun)
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const backdrop = document.getElementById('sidebar-backdrop');
+            sidebar.classList.toggle('-translate-x-full');
+            backdrop.classList.toggle('hidden');
+        }
+
+        // DARK / LIGHT MODE LOGIKA
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const darkIcon = document.getElementById('theme-toggle-dark-icon');
+        const lightIcon = document.getElementById('theme-toggle-light-icon');
+
+        themeToggleBtn.addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+            darkIcon.classList.toggle('hidden');
+            lightIcon.classList.toggle('hidden');
+        });
+
+        // FIREBASE BAZASIDAN SOTUVLARNI YUKLASH
+        async function loadLiveSales() {
+            const tableBody = document.getElementById('sales-rows');
+            const url = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/sales`;
+
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error("Baza bilan aloqa yo'q");
+
+                const data = await response.json();
+                const docs = data.documents || [];
+
+                if (docs.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-400">Hali hech qanday sotuv kiritilmadi</td></tr>`;
+                    document.getElementById('total-qty').innerText = "0 kg";
+                    document.getElementById('sort1-qty').innerText = "0 kg";
+                    document.getElementById('sort2-qty').innerText = "0 kg";
+                    document.getElementById('sort3-qty').innerText = "0 kg";
+                    return;
+                }
+
+                let totalQty = 0, s1 = 0, s2 = 0, s3 = 0;
+                let rowsHtml = '';
+
+                docs.reverse().forEach(doc => {
+                    // Document ID sini olish (o'chirish so'rovi yuborish uchun)
+                    const docName = doc.name; 
+                    const docId = docName.split('/').pop();
+
+                    const f = doc.fields || {};
+                    const user = f.user_name?.stringValue || "Noma'lum";
+                    const sort = f.apple_sort?.stringValue || "-";
+                    const qty = parseInt(f.quantity?.integerValue || 0);
+                    const date = f.date?.stringValue || "";
+                    const time = f.time?.stringValue || "";
+
+                    totalQty += qty;
+                    if (sort.includes("1-sort")) s1 += qty;
+                    else if (sort.includes("2-sort")) s2 += qty;
+                    else if (sort.includes("3-sort")) s3 += qty;
+
+                    rowsHtml += `
+                        <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition">
+                            <td class="p-4 font-semibold text-slate-900 dark:text-white flex items-center space-x-2">
+                                <span class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xs font-bold text-emerald-500">
+                                    ${user.charAt(0)}
+                                </span>
+                                <span>${user}</span>
+                            </td>
+                            <td class="p-4"><span class="px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-100 dark:bg-slate-800">${sort}</span></td>
+                            <td class="p-4 font-bold text-emerald-500">+${qty} kg</td>
+                            <td class="p-4 text-xs text-slate-400">${date} (${time})</td>
+                            <td class="p-4 text-center">
+                                <button onclick="deleteSale('${docId}')" class="w-8 h-8 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition flex items-center justify-center mx-auto" title="Ushbu sotuvni o'chirish">
+                                    <i class="fa-solid fa-trash-can text-xs"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                tableBody.innerHTML = rowsHtml;
+                document.getElementById('total-qty').innerText = totalQty + " kg";
+                document.getElementById('sort1-qty').innerText = s1 + " kg";
+                document.getElementById('sort2-qty').innerText = s2 + " kg";
+                document.getElementById('sort3-qty').innerText = s3 + " kg";
+
+            } catch (err) {
+                tableBody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-red-400">Xatolik: ${err.message}</td></tr>`;
+            }
+        }
+
+        // FIREBASE BAZASIDAN SOTUVNI O'CHIRISH FUNKSIYASI
+        async function deleteSale(docId) {
+            if (!confirm("Haqiqatan ham ushbu sotuv ma'lumotini o'chirib tashlamoqchimisiz?")) {
+                return;
+            }
+
+            const deleteUrl = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/sales/${docId}`;
+
+            try {
+                const response = await fetch(deleteUrl, { method: 'DELETE' });
+                if (response.ok) {
+                    // O'chirilgach, sotuvlar ro'yxatini va hisobotni yangilash
+                    loadLiveSales();
+                } else {
+                    alert("O'chirishda xatolik yuz berdi.");
+                }
+            } catch (err) {
+                alert("Xatolik: " + err.message);
+            }
+        }
+
+        // Sahifa yuklanishi bilan sotuvlarni yuklash
+        loadLiveSales();
+    </script>
+
+</body>
+</html>
